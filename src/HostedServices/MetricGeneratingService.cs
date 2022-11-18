@@ -1,7 +1,7 @@
 using System.Reflection;
 using System.Diagnostics.Metrics;
 
-namespace RawVsOTelPoc.Api;
+namespace RawVsOTelPoc.Api.HostedServices;
 
 // https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/docs/metrics/getting-started/README.md
 // https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/api.md

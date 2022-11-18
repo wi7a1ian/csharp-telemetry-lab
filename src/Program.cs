@@ -1,4 +1,5 @@
 using RawVsOTelPoc.Api;
+using RawVsOTelPoc.Api.HostedServices;
 
 // Materials:
 // https://devblogs.microsoft.com/dotnet/opentelemetry-net-reaches-v1-0/
@@ -25,6 +26,7 @@ using RawVsOTelPoc.Api;
 // https://jimmybogard.com/activitysource-and-listener-in-net-5/
 // https://github.com/grafana/tempo/tree/main/example/docker-compose
 // https://github.com/open-telemetry/opentelemetry-dotnet-contrib/tree/main/src/OpenTelemetry.Instrumentation.Runtime
+// https://vbehar.medium.com/using-prometheus-exemplars-to-jump-from-metrics-to-traces-in-grafana-249e721d4192
 
 // dotnet add package OpenTelemetry --prerelease
 // dotnet add package OpenTelemetry.Extensions.Hosting --prerelease
@@ -44,6 +46,9 @@ using RawVsOTelPoc.Api;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+
 builder.Services.AddTracabilityViaOpenTelemetry(builder.Configuration);
 builder.Services.AddMetricsViaOpenTelemetry(builder.Configuration);
 
@@ -52,6 +57,9 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddHttpClient();
 builder.Services.AddHostedService<MetricGeneratingService>();
+builder.Services.AddHostedService<WorkQueueSimulatingService>();
+builder.Services.AddSingleton<IWorkQueue, DummyWorkQueue>();
+builder.Services.Configure<WorkQueueOptions>(builder.Configuration.GetSection(nameof(WorkQueueOptions)));
 
 var app = builder.Build();
 if (app.Environment.IsDevelopment())
@@ -66,7 +74,7 @@ app.MapControllers();
 app.UseActivityListenerForTracability(builder.Configuration);
 app.UseMetricsViaOpenTelemetry(builder.Configuration);
 
-app.Run();
+await app.RunAsync();
 
 /*
 Without OpenTelemetry Instrumentation:
